@@ -6,7 +6,7 @@ import optparse
 import logging
 import time
 import datetime
-import pytz
+import textwrap
 
 from sqlalchemy.sql.expression import *
 
@@ -69,13 +69,47 @@ class Tracker (object):
                 self.cmd_drop(args)
             elif cmd == 'log':
                 self.cmd_log(args)
+            elif cmd == 'help':
+                self.cmd_help(args)
             else:
                 self.cmd_start([cmd] + args)
         except TrackerError, detail:
             self.log.error(detail)
             sys.exit(1)
 
+    def cmd_help(self, args):
+        '''Show available commands.'''
+
+        print 'TimeTracker (tt)'
+        print 'by Lars Kellogg-Stedman'
+        print
+        print 'Available commands:'
+        print
+        for command in [x for x in dir(self) if x.startswith('cmd_')]:
+            cmdname = command[4:]
+            doc = getattr(getattr(self, command), '__doc__')
+
+            if doc is None:
+                doc = '%s command' % cmdname
+
+            try:
+                cmdexample, cmdhelp = doc.split('\n', 1)
+            except ValueError:
+                cmdexample = cmdname
+                cmdhelp = doc
+
+            print cmdname, '--', cmdexample
+
+            if cmdhelp:
+                print textwrap.fill(textwrap.dedent(cmdhelp),
+                        initial_indent='    ',
+                        subsequent_indent='    ')
+            print
+
     def cmd_log(self, args):
+        '''log <project> <start> <stop> [<comment>]
+        Log work to a project.'''
+
         try:
             projname, time_start, time_stop = args[:3]
             comment = ' '.join(args[3:])
@@ -109,6 +143,9 @@ class Tracker (object):
                 w.time_stop - w.time_start, project.name, comment)
 
     def cmd_drop(self, args):
+        '''drop <project>
+        Remove a project (and any associated work) from the database.'''
+
         try:
             projname = args.pop(0)
             project = self.get_project(projname, create=False)
@@ -121,6 +158,10 @@ class Tracker (object):
             raise TrackerError('No project?')
 
     def cmd_start(self, args):
+        '''start [ <project> [ <comment> ] ]
+        Start work on a project.  If <project> is unspecified, start work
+        on the project on which you most recently worked.'''
+
         w = self.find_open_work()
         if w:
             self.stop_work(w)
@@ -137,6 +178,8 @@ class Tracker (object):
         self.start_work(project, args)
 
     def cmd_cancel(self, args):
+        '''cancel
+        Cancel your current work.'''
         w = self.find_open_work()
         if w:
             self.cancel_work(w)
@@ -144,6 +187,9 @@ class Tracker (object):
             raise TrackerError("You're not doing anything right now!")
 
     def cmd_stop(self, args):
+        '''stop
+        Stop your current work.'''
+
         w = self.find_open_work()
         if w:
             self.stop_work(w)
@@ -151,6 +197,9 @@ class Tracker (object):
             raise TrackerError("You're not doing anything right now!")
 
     def cmd_list(self, args):
+        '''list
+        List available projects.'''
+
         for project in self.session.query(model.Project).all():
             print project.name
 
@@ -192,6 +241,10 @@ class Tracker (object):
         return midnight - delta
 
     def cmd_report(self, args):
+        '''report [ --today | --week | --month | --days <days> | --weeks <weeks> ] [ projects [...] ]
+        Produce a report of time worked on various projects.
+        '''
+
         now = datetime.datetime.utcnow()
         midnight = datetime.datetime.combine(now, 
                 datetime.time(0,0)) + self.utcdelta
@@ -230,6 +283,10 @@ class Tracker (object):
             print '%-20s %s' % (project.name, acc)
 
     def cmd_status(self, args):
+        '''status
+        Show what you're currently working on and what you last worked
+        on.'''
+
         now = datetime.datetime.utcnow()
 
         w = self.find_open_work()
