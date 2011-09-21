@@ -85,7 +85,7 @@ class Tracker (object):
         print
         print 'Available commands:'
         print
-        for command in [x for x in dir(self) if x.startswith('cmd_')]:
+        for command in sorted((x for x in dir(self) if x.startswith('cmd_'))):
             cmdname = command[4:]
             doc = getattr(getattr(self, command), '__doc__')
 
@@ -104,7 +104,6 @@ class Tracker (object):
                 print textwrap.fill(textwrap.dedent(cmdhelp),
                         initial_indent='    ',
                         subsequent_indent='    ')
-            print
 
     def cmd_log(self, args):
         '''log <project> <start> <stop> [<comment>]
