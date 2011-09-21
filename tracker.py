@@ -211,7 +211,11 @@ class Tracker (object):
         p.add_option('--week', '-W', action='store_true')
         p.add_option('--month', '-M', action='store_true')
 
-        p.add_option('--seconds', '-s', action='store_true')
+        p.add_option('--seconds', '-s', action='store_true',
+                help='Display time in seconds.')
+        p.add_option('--total',
+                action='store_true',
+                help='Calculate total time worked.')
 
         return p.parse_args(args)
 
@@ -265,6 +269,8 @@ class Tracker (object):
         else:
             since = None
 
+        total = datetime.timedelta()
+
         for project in projects:
             work = self.session.query(model.Work)\
                     .filter(model.Work.project==project)\
@@ -275,11 +281,18 @@ class Tracker (object):
 
             acc = sum((w.time_stop - w.time_start for w in work),
                     datetime.timedelta())
+            total += acc
             
             if opts.seconds:
                 acc = acc.seconds
 
             print '%-20s %s' % (project.name, acc)
+
+        if opts.total:
+            if opts.seconds:
+                total = total.seconds
+            print
+            print '%-20s %s' % ('Total', total)
 
     def cmd_status(self, args):
         '''status
