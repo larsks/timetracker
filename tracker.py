@@ -17,6 +17,7 @@ class Tracker (object):
 
     def parse_args(self):
         p = optparse.OptionParser()
+        p.disable_interspersed_args()
         p.add_option('-d', '--dburi',
                 default=os.environ.get('TIMETRACKER_DBURI',
                     os.path.join(os.environ['HOME'], '.timedb')))
@@ -87,8 +88,37 @@ class Tracker (object):
     def cmd_list(self, args):
         for project in self.session.query(model.Project).all():
             print project.name
+
+    def parse_report_args(self, args):
+        p = optparse.OptionParser()
+        p.add_option('--since')
+        p.add_option('--days', '-d')
+        p.add_option('--week', action='store_true')
+        p.add_option('--month', action='store_true')
+        p.add_option('--verbose', '-v', action='store_true')
+
+        return p.parse_args(args)
+
     def cmd_report(self, args):
-        pass
+        now = datetime.datetime.utcnow()
+
+        opts, args = self.parse_report_args(args)
+        
+        if args:
+            projects = self.session.query(model.Project)\
+                    .filter(model.Project.name.in_(args))
+        else:
+            projects = self.session.query(model.Project).all()
+
+        for p in projects:
+            work = datetime.timedelta()
+            
+            for x in (w.time_stop - w.time_start for w in self.session.query(model.Work)\
+                    .filter(model.Work.time_stop != None).filter(model.Work.project == p)):
+                work += x
+
+            print '%-20s %s' % (p.name, work)
+
     def cmd_status(self, args):
         now = datetime.datetime.utcnow()
 
