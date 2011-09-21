@@ -57,7 +57,7 @@ class Tracker (object):
             elif cmd == 'report':
                 self.cmd_report(args)
             else:
-                raise TrackerError('Unsupported command: %s' % cmd)
+                self.cmd_start([cmd] + args)
         except TrackerError, detail:
             self.log.error(detail)
             sys.exit(1)
