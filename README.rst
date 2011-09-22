@@ -42,3 +42,46 @@ Commands
   Report work totals for all projects (or the specified project) for all
   time or for the specified period.
 
+Examples
+========
+
+Working with timetracker::
+
+  $ tt start website working on documentation
+  timetracker: INFO: Creating project "website".
+  timetracker: INFO: Starting work on "website".
+  $ tt
+  You have been working on website (working on documentation) since 2011-09-21 18:32:32 (0:00:05.724626).
+  You last worked on meta for 0:28:56.909626.
+  $ tt list
+  hpc
+  email
+  isilon
+  code.seas
+  meta
+  lunch
+  coffee
+  homestuff
+  website
+  $ tt email
+  timetracker: INFO: Stopping work on website (working on documentation) after 0:00:14.416366.
+  timetracker: INFO: Starting work on "email".
+  $ tt report -W
+  hpc                  0:31:16.900541
+  email                0:03:35.549148
+  isilon               0:02:36.782161
+  code.seas            0:05:25.168950
+  meta                 2:39:44.715278
+  lunch                0:45:00
+  coffee               0:05:48.300289
+  homestuff            0:05:51.317112
+  website              0:00:14.416366
+  $ tt
+  You have been working on email since 2011-09-21 18:32:46 (0:00:15.246323).
+  You last worked on website (working on documentation) for 0:00:14.416366.
+  $ tt stop
+  timetracker: INFO: Stopping work on email after 0:00:16.793932.
+  $ tt
+  You are not currently working on anything.
+  You last worked on email for 0:00:16.793932.
+
