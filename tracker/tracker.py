@@ -204,18 +204,25 @@ class Tracker (object):
 
     def parse_report_args(self, args):
         p = optparse.OptionParser(usage='tt report [options] [projects]')
-        p.add_option('--since')
-        p.add_option('--days')
-        p.add_option('--weeks')
-        p.add_option('--today', '--day', '-T', action='store_true')
-        p.add_option('--week', '-W', action='store_true')
-        p.add_option('--month', '-M', action='store_true')
+        p.add_option('--days',
+                help='Show work done in the past DAYS days.')
+        p.add_option('--weeks',
+                help='Show work done in the past WEEKS weeks.')
+        p.add_option('--today', '--day', '-T', action='store_true',
+                help='Show work done today.')
+        p.add_option('--week', '-W', action='store_true',
+                help='Show work done this week.')
+        p.add_option('--month', '-M', action='store_true',
+                help='Show work done this month.')
 
         p.add_option('--seconds', '-s', action='store_true',
                 help='Display time in seconds.')
         p.add_option('--total',
                 action='store_true',
                 help='Calculate total time worked.')
+
+        p.add_option('--all', '-a', action='store_true',
+                help='Show all projects, even those with no work.')
 
         return p.parse_args(args)
 
@@ -282,6 +289,9 @@ class Tracker (object):
             acc = sum((w.time_stop - w.time_start for w in work),
                     datetime.timedelta())
             total += acc
+
+            if not opts.all and acc == datetime.timedelta():
+                continue
             
             if opts.seconds:
                 acc = acc.seconds
