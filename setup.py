@@ -5,4 +5,5 @@ setup(
     version = "1",
     packages = find_packages(),
     scripts = [ 'bin/tt' ],
+    install_requires = [ 'sqlalchemy' ],
 )
